@@ -1,7 +1,10 @@
 apiVersion: nais.io/v1alpha1
 kind: Application
 metadata:
+  labels:
+    team: teamdigihot
   name: hotpot
+  namespace: teamdigihot
 spec:
   image: {{ image }}
   port: 8080
