@@ -39,18 +39,18 @@ spec:
   tokenx:
     enabled: true
   accessPolicy:
+    inbound:
+      rules:
+        - application: azure-token-generator
+          namespace: nais
+        - application: tokenx-token-generator
+          namespace: nais
     outbound:
       rules:
         - application: hjelpemidler-api
           namespace: team-oebs
         - application: logging
           namespace: nais-system
-        - application: azure-token-generator
-          namespace: nais
-          cluster: dev-gcp
-        - application: tokenx-token-generator
-          namespace: nais
-          cluster: dev-gcp
   env:
     - name: HTTP_PORT
       value: "8080"
