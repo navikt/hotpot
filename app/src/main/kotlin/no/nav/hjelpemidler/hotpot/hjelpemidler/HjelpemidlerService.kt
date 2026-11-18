@@ -3,6 +3,7 @@ package no.nav.hjelpemidler.hotpot.hjelpemidler
 import io.github.oshai.kotlinlogging.KotlinLogging
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
 import no.nav.hjelpemidler.hotpot.oebs.HjelpemidlerApiClient
+import no.nav.hjelpemidler.hotpot.oebs.model.Adresse
 import no.nav.hjelpemidler.hotpot.oebs.model.Adresser
 import no.nav.hjelpemidler.hotpot.oebs.model.Bruker
 import no.nav.hjelpemidler.hotpot.oebs.model.Brukerpass
@@ -17,6 +18,9 @@ class HjelpemidlerService(
 
     suspend fun hentAdresser(fnr: Fødselsnummer): Adresser? =
         hjelpemidlerApiClient.hentAdresser(fnr)
+
+    suspend fun hentBostedsadresse(fnr: Fødselsnummer): Adresse? =
+        hjelpemidlerApiClient.hentBostedsadresse(fnr)
 
     suspend fun hentBrukerpass(fnr: Fødselsnummer): List<Brukerpass> =
         hjelpemidlerApiClient.hentBrukerpass(fnr)

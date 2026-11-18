@@ -15,6 +15,7 @@ import io.ktor.http.contentType
 import io.ktor.http.isSuccess
 import no.nav.hjelpemidler.configuration.EnvironmentVariable
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
+import no.nav.hjelpemidler.hotpot.oebs.model.Adresse
 import no.nav.hjelpemidler.hotpot.oebs.model.Adresser
 import no.nav.hjelpemidler.hotpot.oebs.model.Bruker
 import no.nav.hjelpemidler.hotpot.oebs.model.Brukerpass
@@ -51,6 +52,15 @@ class HjelpemidlerApiClient(
         fnr: Fødselsnummer,
         correlationId: UUID = UUID.randomUUID(),
     ): Adresser? = oppslag("bruker/adresser/oppslag", fnr, correlationId).bodyOrNullIfNotFound()
+
+    /**
+     * Bostedsadresse som er gyldig for bruk i opprettelse av serviceforespørsel.
+     * Returnerer `null` hvis ingen gyldig bostedsadresse finnes (404).
+     */
+    suspend fun hentBostedsadresse(
+        fnr: Fødselsnummer,
+        correlationId: UUID = UUID.randomUUID(),
+    ): Adresse? = oppslag("bruker/bostedsadresse/oppslag", fnr, correlationId).bodyOrNullIfNotFound()
 
     /**
      * Returnerer tom liste hvis brukerpass ikke finnes (404).

@@ -1,13 +1,8 @@
 package no.nav.hjelpemidler.hotpot.oebs.model
 
 data class Adresser(
-    val primaeradresse: Personadresse? = null,
-    val adresser: List<Personadresse> = emptyList(),
-)
-
-data class Personadresse(
     val bostedsadresse: Adresse? = null,
-    val leveringsadresse: Adresse? = null,
+    val leveringsadresser: List<Adresse> = emptyList(),
 )
 
 data class Adresse(
