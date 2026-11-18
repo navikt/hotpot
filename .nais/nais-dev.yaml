@@ -5,6 +5,8 @@ metadata:
 spec:
   image: {{ image }}
   port: 8080
+  ingresses:
+    - https://hotpot.intern.dev.nav.no
   liveness:
     path: /isalive
   readiness:

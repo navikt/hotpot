@@ -14,10 +14,15 @@ import io.ktor.server.application.install
 import io.ktor.server.auth.authentication
 import io.ktor.server.engine.connector
 import io.ktor.server.engine.embeddedServer
+import io.ktor.server.metrics.micrometer.MicrometerMetrics
 import io.ktor.server.netty.Netty
 import io.ktor.server.plugins.di.dependencies
 import io.ktor.server.plugins.di.provide
+import io.ktor.server.response.respond
+import io.ktor.server.routing.get
 import io.ktor.server.routing.routing
+import io.micrometer.prometheusmetrics.PrometheusConfig
+import io.micrometer.prometheusmetrics.PrometheusMeterRegistry
 import no.nav.hjelpemidler.configuration.Configuration
 import no.nav.hjelpemidler.configuration.Environment
 import no.nav.hjelpemidler.domain.person.Fødselsnummer
@@ -51,6 +56,8 @@ fun main() {
         },
         module = {
             dependencies {
+                provide { PrometheusMeterRegistry(PrometheusConfig.DEFAULT) }
+
                 provide<HttpClientEngine> { CIO.create() }
 
                 provide<Texas> {
@@ -66,6 +73,8 @@ fun main() {
                 provide(::HjelpemidlerService)
             }
 
+            health()
+
             val texas: Texas by dependencies
             authentication {
                 texas(texas)
@@ -74,6 +83,25 @@ fun main() {
             graphQLApi()
         },
     ).start(wait = true)
+}
+
+fun Application.health() {
+    val meterRegistry: PrometheusMeterRegistry by dependencies
+    install(MicrometerMetrics) {
+        this.registry = meterRegistry
+    }
+
+    routing {
+        get("/isalive") {
+            call.respond("ALIVE")
+        }
+        get("/isready") {
+            call.respond("READY")
+        }
+        get("/metrics") {
+            call.respond(meterRegistry.scrape())
+        }
+    }
 }
 
 fun Application.graphQLApi(endpoint: String = "graphql") {

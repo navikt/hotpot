@@ -21,6 +21,10 @@ dependencies {
     implementation(libs.ktor.client.resources)
     implementation(libs.ktor.server.di)
     implementation(libs.ktor.server.netty)
+    implementation(libs.ktor.server.metrics.micrometer)
+
+    // Metrics
+    implementation(libs.micrometer.registry.prometheus)
 }
 
 application {
