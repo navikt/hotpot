@@ -1,0 +1,308 @@
+openapi: 3.0.4
+info:
+  title: Hjelpemidler API
+  description: Select server that corresponds to the environment you want to use.
+  version: 1.0.0
+servers:
+  - url: 'https://hjelpemidler-api.intern.dev.nav.no/api/v1'
+    description: test environment
+  - url: 'http://localhost:8080/api/v1'
+    description: local environment
+  - url: 'https://hjelpemidler-api.intern.nav.no/api/v1'
+    description: production environment
+
+security:
+  - BearerAuth: []
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    brukernummer:
+      type: string
+      pattern: '^[0-9]+$'
+      description: Brukernummer for the user
+    fnr:
+      type: string
+      pattern: '^[0-9]{11}$'
+      description: Fødselsnummer (11 siffer)
+    aktiv: #todo: Skal den hete status eller aktiv, hva indikerer den?
+      type: boolean
+      description: Indicates whether the user is active or not
+    fnrRequestBody:
+      type: object
+      required:
+        - fnr
+      properties:
+        fnr:
+          $ref: '#/components/schemas/fnr'
+    bruker:
+      type: object
+      required:
+        - brukernummer
+        - aktiv
+      properties:
+        brukernummer:
+          $ref: '#/components/schemas/brukernummer'
+        aktiv:
+          $ref: '#/components/schemas/aktiv'
+    adresser:
+      type: object
+      description: Adresser for en bruker, inkludert primæradresse og eventuelle andre adresser
+      properties:
+        primaeradresse:
+          $ref: '#/components/schemas/personadresse'
+        adresser:
+          type: array
+          items:
+            $ref: '#/components/schemas/personadresse'
+    personadresse:
+      type: object
+      properties:
+        bostedsadresse:
+          $ref: '#/components/schemas/adresse'
+        leveringsadresse:
+          $ref: '#/components/schemas/adresse'
+    adresse:
+      type: object
+      properties:
+        gateadresse:
+          type: string
+        postnummer:
+          type: string
+        by:
+          type: string
+        kommune:
+          type: string
+        bydel:
+          type: string
+          nullable: true
+    brukerpass:
+      type: object
+      properties:
+        kontraktnr:
+          type: string
+        startdato:
+          type: string
+          format: date
+        sluttdato:
+          type: string
+          format: date
+
+    artikkel:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        beskrivelse:
+          type: string
+
+paths:
+  /bruker/oppslag:
+    post:
+      operationId: getBruker
+      summary: Get status for a given fnr
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: x-correlation-id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Korrelasjons-ID for sporing av forespørselen på UUID format
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/fnrRequestBody'
+      responses:
+        '200':
+          description: Brukernummer and status for a given fnr
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/bruker'
+              example:
+                brukernummer: "123456"
+                aktiv: true
+        '404':
+          description: No status found for the given brukernummer
+        '400':
+          description: Invalid input parameters
+        '401':
+          description: Unauthorized (manglende/ugyldig token)
+        '403':
+          description: Forbidden (token uten nødvendige claims)
+        '500':
+          description: Internal Server Error
+  /bruker/adresser/oppslag:
+    post:
+      operationId: getAdresser
+      security:
+        - BearerAuth: []
+      summary: Get adresser for a given brukernummer
+      parameters:
+        - name: x-correlation-id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Korrelasjons-ID for sporing av forespørselen på UUID format
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/fnrRequestBody'
+      responses:
+        '200':
+          description: Adresser for a given brukernummer
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/adresser"
+              example:
+                primaeradresse:
+                  bostedsadresse:
+                    gateadresse: "Storgata 1"
+                    postnummer: "0123"
+                    by: "Oslo"
+                    kommune: "0301"
+                    bydel: "Gamle Oslo"
+                  leveringsadresse:
+                    gateadresse: "Postboks 1"
+                    postnummer: "0101"
+                    by: "Oslo"
+                    kommune: "0301"
+                    bydel: null
+                adresser:
+                  - bostedsadresse:
+                      gateadresse: "Storgata 1"
+                      postnummer: "0123"
+                      by: "Oslo"
+                      kommune: "0301"
+                      bydel: "Gamle Oslo"
+                    leveringsadresse:
+                      gateadresse: "Postboks 1"
+                      postnummer: "0101"
+                      by: "Oslo"
+                      kommune: "0301"
+                      bydel: null
+        '404':
+          description: No addresses found for the given brukernummer
+        '400':
+          description: Invalid input parameters
+        '401':
+          description: Unauthorized (manglende/ugyldig token)
+        '403':
+          description: Forbidden (token uten nødvendige claims)
+        '500':
+          description: Internal Server Error
+  /bruker/brukerpass/oppslag:
+    post:
+      operationId: getBrukerPass
+      security:
+        - BearerAuth: []
+      summary: Get brukerpass for a given brukernummer
+      parameters:
+        - name: x-correlation-id
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: Korrelasjons-ID for sporing av forespørselen på UUID format
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/fnrRequestBody'
+      responses:
+        '200':
+          description: Brukerpass for a given brukernummer
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/brukerpass"
+              example:
+                - kontraktnr: "K-123456"
+                  startdato: "2026-01-01"
+                  sluttdato: "2026-12-31"
+        '404':
+          description: No brukerpass found for the given brukernummer
+        '400':
+          description: Invalid input parameters
+        '401':
+          description: Unauthorized (manglende/ugyldig token)
+        '403':
+          description: Forbidden (token uten nødvendige claims)
+        '500':
+          description: Internal Server Error
+  /artikkel:
+    get:
+      operationId: getArtikler
+      security:
+        - BearerAuth: []
+      summary: Get all artikler
+      responses:
+        '200':
+          description: List of all artikler
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/artikkel'
+              example:
+                - id: "1"
+                  type: "type1"
+                  beskrivelse: "Beskrivelse av artikkel 1"
+                - id: "2"
+                  type: "type2"
+                  beskrivelse: "Beskrivelse av artikkel 2"
+        '404':
+          description: No segments found for the given segmentType
+        '400':
+          description: Invalid input parameters
+        '500':
+          description: Internal Server Error
+  /artikkel/{id}:
+    get:
+      operationId: getArtikkel
+      security:
+        - BearerAuth: []
+      summary: Get artikkel for a given id
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Artikkel for given id
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/artikkel"
+              example:
+                "example": "testexample"
+        '404':
+          description: No segments found for the given segmentType
+        '400':
+          description: Invalid input parameters
+        '500':
+          description: Internal Server Error
