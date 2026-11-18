@@ -28,5 +28,5 @@ dependencies {
 }
 
 application {
-    mainClass = "no.nav.hjelpemidler.hotspot.AppKt"
+    mainClass = "no.nav.hjelpemidler.hotpot.AppKt"
 }
